@@ -17,9 +17,9 @@ def clearResult(vector):  # 对输入的向量进行排序并返回排序后的�
 def getEigen(
     A, i
 ):  # 计算矩阵 A 的特征值和特征向量，并返回第 i 大特征值对应的特征向量。
-    a, b = LA.eig(A)
+    a, b = LA.eig(A)  # [[1.234]]
     indexList = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
-    index = indexList[i]
+    index = indexList[i]  # FIXME:
     vector = b[:, index]
     return vector
 
@@ -85,7 +85,7 @@ def save_json(output_dir, result):
 # 将输入矩阵 matrix 和一个随机矩阵按一定权重进行组合
 def randomMatrix(matrix, beta):
     orig = np.dot((1 - beta), matrix)
-    rand = np.random.rand(matrix.shape[0], matrix.shape[1])
+    rand = np.random.rand(matrix.shape[0], matrix.shape[1])  # FIXME:
     for i, arr in enumerate(rand):
         sum = np.sum(rand[i])
         rand[i] = np.dot(beta / sum, arr)
@@ -94,6 +94,7 @@ def randomMatrix(matrix, beta):
 
 # 对输入的矩阵列表进行一系列处理，包括随机化矩阵、矩阵相乘、计算特征向量等操作，最终返回处理后的结果和中间向量
 def parallel(matrixList, beta=0.1, eigen=1):
+    print(matrixList)
     newMatrixList = []
     for i, matrix in enumerate(matrixList):
         matrix = np.array(matrix)

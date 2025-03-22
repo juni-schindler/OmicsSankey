@@ -37,7 +37,6 @@ def run_method(
             stage1_data_pre = helper.stage1_data_preprocessing(
                 data["nodes"], data["links"], n
             )
-            print(stage1_data_pre)
 
         # 阶段 1：初始节点排序
         result_1 = sankey_algo.stage_1(

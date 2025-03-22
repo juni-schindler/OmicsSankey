@@ -30,8 +30,10 @@ class BCAlgorithm:
         levelNumber = n
         matrices = []
         for i in range(n - 1):
+            print(i)
             matrix = []
             for node in nodes[i]:
+                print(node)
                 row = []
                 # cycle
                 if cycle_signal:
@@ -54,7 +56,7 @@ class BCAlgorithm:
                                 if dummy_signal:
                                     value = np.log10(float(link["value"]) + 1)
                         row.append(value)
-                    matrix.append([float(j) / sum(row) for j in row])
+                    matrix.append([float(j) / sum(row) for j in row])  # FIXME:
 
             matrix = np.array(matrix)
             matrices.append(matrix)
