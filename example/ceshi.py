@@ -20,17 +20,17 @@ with open(input_dir, "r") as f:
 output_dir = sys.argv[2]
 alpha1 = 0.01
 alpha2 = 0.1
-N = 100
-M = 100
+N = 1000
+M = 1000
 n = len(data["nodes"])
 
 # ilp
 # output_dir = "C:/Users/wasd2/Desktop/sankey_optimizer/example/output/robust_ilp_result.json"
 
-np.random.seed(0)
+np.random.seed(1)
 algo = "BC"
 # 运行主函数
 result = main.run_main(algo, input_dir, output_dir, n, alpha1, alpha2, N, M)
 
 # 显示结果
-print(result)
+# print(result)

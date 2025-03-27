@@ -1,5 +1,7 @@
 from __future__ import division
 
+import json
+
 from pulp import LpMinimize, LpProblem
 
 from . import helper
@@ -37,6 +39,20 @@ def run_method(
             stage1_data_pre = helper.stage1_data_preprocessing(
                 data["nodes"], data["links"], n
             )
+        with open("stage1_data.json", "w") as f:
+            json.dump(
+                {
+                    "nodes": stage1_data_pre["nodes"],
+                    "links": stage1_data_pre["layeredLinks"]
+                    + stage1_data_pre["addedLinks"],
+                },
+                f,
+            )
+        # orig_order = [[i + 1 for i in range(len(l))] for l in data["nodes"]]
+        # orig_crossings = helper.calculate_crossings(
+        #     orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
+        # )
+        # print(orig_crossings)
 
         # 阶段 1：初始节点排序
         result_1 = sankey_algo.stage_1(
@@ -53,6 +69,7 @@ def run_method(
         float_ordering = result_1["result"]
         stage1_ordering = [[int(num) for num in sublist] for sublist in float_ordering]
 
+        # print("stage 1 result", result_1["result"])
         # 计算阶段 1 的交叉值
         stage1_crossings = helper.calculate_crossings(
             result_1["result"], result_1["nodes"], result_1["groupedLinks"]
@@ -89,6 +106,7 @@ def run_method(
         stage2_crossings = helper.calculate_crossings(
             stage2_ordering, result_1["nodes"], result_2["groupedLinks"]
         )
+        # print(stage2_crossings)
 
         # 返回结果
         return {

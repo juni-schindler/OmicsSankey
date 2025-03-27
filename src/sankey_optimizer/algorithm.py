@@ -30,10 +30,10 @@ class BCAlgorithm:
         levelNumber = n
         matrices = []
         for i in range(n - 1):
-            print(i)
+            # print(i)
             matrix = []
             for node in nodes[i]:
-                print(node)
+                # print(node)
                 row = []
                 # cycle
                 if cycle_signal:
@@ -217,6 +217,7 @@ class BCAlgorithm:
             weightedCrossing = stage2_cross["weightedCrossing"]
             crossing = stage2_cross["crossing"]
 
+            # print(weightedCrossing, correspondingOrdering)
             if weightedCrossing < minWeightedCrossing:
                 minWeightedCrossing = weightedCrossing
                 correspondingCrossing = crossing
@@ -224,6 +225,7 @@ class BCAlgorithm:
                 minAchievedIteration = index
 
         # return result for this case
+        # print(correspondingOrdering)
         return {
             "nodes": nodes,
             "groupedLinks": groupedLinks,

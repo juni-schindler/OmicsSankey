@@ -17,6 +17,7 @@ def clearResult(vector):  # 对输入的向量进行排序并返回排序后的�
 def getEigen(
     A, i
 ):  # 计算矩阵 A 的特征值和特征向量，并返回第 i 大特征值对应的特征向量。
+    # A = (A + A.T) / 2
     a, b = LA.eig(A)  # [[1.234]]
     indexList = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
     index = indexList[i]  # FIXME:
@@ -41,6 +42,7 @@ def getCrossing(inputMatrix):  # 计算输入矩阵的交叉值。
 
 
 def calculate_crossings(result, nodes, groupedLinks):
+    # print(len(result), len(nodes))
     weightedCrossing = 0
     crossing = 0
     for i in range(0, len(result) - 1):
@@ -64,11 +66,12 @@ def calculate_crossings(result, nodes, groupedLinks):
                 m2[j, k] = value2
         weightedCrossing += getCrossing(m1)
         crossing += getCrossing(m2)
+    # print(weightedCrossing, crossing)
     return {"weightedCrossing": weightedCrossing, "crossing": crossing}
 
 
 def load_json(input_dir):
-    print(input_dir)
+    # print(input_dir)
     with open(input_dir, "r") as f:
         data = json.load(f)
     return data
@@ -94,7 +97,7 @@ def randomMatrix(matrix, beta):
 
 # 对输入的矩阵列表进行一系列处理，包括随机化矩阵、矩阵相乘、计算特征向量等操作，最终返回处理后的结果和中间向量
 def parallel(matrixList, beta=0.1, eigen=1):
-    print(matrixList)
+    # print(matrixList)
     newMatrixList = []
     for i, matrix in enumerate(matrixList):
         matrix = np.array(matrix)
@@ -104,6 +107,7 @@ def parallel(matrixList, beta=0.1, eigen=1):
         else:
             A = np.matmul(A, newMatrixList[i])
     vector = getEigen(A, eigen)
+    # print(vector)
     vectors = []
     result = []
     for i, matrix in enumerate(newMatrixList):
@@ -570,10 +574,10 @@ def stage1_data_preprocessing(nodes, layeredLinks, n):
     levelNumber = n
     addedLinks = []
     numLink = len(layeredLinks)
-    print(layeredLinks)
+    # print(layeredLinks)
     for i in range(len(layeredLinks)):
         for j in range(len(layeredLinks[i])):
-            print(i, j)
+            # print(i, j)
             addedLinks.append(layeredLinks[i][j])
 
     link1 = addedLinks
