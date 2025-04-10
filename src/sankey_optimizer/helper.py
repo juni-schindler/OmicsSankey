@@ -18,6 +18,8 @@ def getEigen(
     A, i
 ):  # 计算矩阵 A 的特征值和特征向量，并返回第 i 大特征值对应的特征向量。
     # A = (A + A.T) / 2
+    if A.shape == (1, 1):
+        return np.array([1])
     a, b = LA.eig(A)  # [[1.234]]
     indexList = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
     index = indexList[i]  # FIXME:
@@ -50,6 +52,9 @@ def calculate_crossings(result, nodes, groupedLinks):
         order2 = result[i + 1]
         nodes1 = nodes[i]
         nodes2 = nodes[i + 1]
+        # print(i)
+        # print(nodes2)
+        # print(order2)
         m1 = np.empty([len(order1), len(order2)])
         m2 = np.empty([len(order1), len(order2)])
         for j in range(0, len(order1)):
@@ -87,8 +92,12 @@ def save_json(output_dir, result):
 
 # 将输入矩阵 matrix 和一个随机矩阵按一定权重进行组合
 def randomMatrix(matrix, beta):
+    print(matrix)
     orig = np.dot((1 - beta), matrix)
-    rand = np.random.rand(matrix.shape[0], matrix.shape[1])  # FIXME:
+    # rand = np.random.rand(matrix.shape[0], matrix.shape[1])  # FIXME:
+    if matrix.ndim < 2:
+        matrix = np.array([[matrix]])
+    rand = np.random.rand(*matrix.shape)
     for i, arr in enumerate(rand):
         sum = np.sum(rand[i])
         rand[i] = np.dot(beta / sum, arr)
@@ -107,7 +116,6 @@ def parallel(matrixList, beta=0.1, eigen=1):
         else:
             A = np.matmul(A, newMatrixList[i])
     vector = getEigen(A, eigen)
-    # print(vector)
     vectors = []
     result = []
     for i, matrix in enumerate(newMatrixList):

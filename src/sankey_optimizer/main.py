@@ -43,15 +43,28 @@ def run_method(
             json.dump(
                 {
                     "nodes": stage1_data_pre["nodes"],
-                    "links": stage1_data_pre["layeredLinks"]
-                    + stage1_data_pre["addedLinks"],
+                    "links": stage1_data_pre["addedLinks"],
                 },
                 f,
             )
-        # orig_order = [[i + 1 for i in range(len(l))] for l in data["nodes"]]
-        # orig_crossings = helper.calculate_crossings(
-        #     orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
-        # )
+        orig_order = [[i + 1 for i in range(len(l))] for l in stage1_data_pre["nodes"]]
+        orig_crossings = helper.calculate_crossings(
+            orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
+        )
+        # if "level" not in data:
+        #     orig_order = [[i + 1 for i in range(len(l))] for l in data["nodes"]]
+        #     orig_crossings = helper.calculate_crossings(
+        #         orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
+        #     )
+        # else:
+        #     orig_order = [
+        #         [i + 1 for i in range(len(l))]
+        #         for l in stage1_data_pre["nodes"].values()
+        #     ]
+        #     orig_crossings = helper.calculate_crossings(
+        #         orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
+        #     )
+
         # print(orig_crossings)
 
         # 阶段 1：初始节点排序
@@ -110,6 +123,8 @@ def run_method(
 
         # 返回结果
         return {
+            "Original Crossing": orig_crossings["crossing"],
+            "Original WeightedCrossing": orig_crossings["weightedCrossing"],
             "Stage 1 Ordering": stage1_ordering,
             "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
             "Stage 1 Crossing": stage1_crossings["crossing"],
