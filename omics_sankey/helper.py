@@ -2,6 +2,8 @@ import json
 import os
 from itertools import groupby
 
+from tqdm import tqdm
+
 import numpy as np
 from numpy import linalg as LA
 
@@ -20,6 +22,7 @@ def getEigen(
     # A = (A + A.T) / 2
     if A.shape == (1, 1):
         return np.array([1])
+        
     a, b = LA.eig(A)  # [[1.234]]
     indexList = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
     index = indexList[i]  # FIXME:
@@ -27,11 +30,14 @@ def getEigen(
     return vector
 
 
-def getCrossing(inputMatrix):  # 计算输入矩阵的交叉值。
+def getCrossing(inputMatrix, max_dim=40):  # 计算输入矩阵的交叉值。
     npMatrix = np.array(inputMatrix)
     p = npMatrix.shape[0]
     q = npMatrix.shape[1]
+    if p + q > max_dim:
+        return 0 # crossing number not necessarily needed for layout
     crossing = 0
+    # this loop is very time-consuming!
     for j in range(1, p):
         for k in range(j + 1, p + 1):
             for a in range(1, q):
@@ -43,7 +49,7 @@ def getCrossing(inputMatrix):  # 计算输入矩阵的交叉值。
 # --------------------------------------------------------
 
 
-def calculate_crossings(result, nodes, groupedLinks):
+def calculate_crossings(result, nodes, groupedLinks, with_crossing=True):
     # print(len(result), len(nodes))
     weightedCrossing = 0
     crossing = 0
@@ -70,9 +76,13 @@ def calculate_crossings(result, nodes, groupedLinks):
                 m1[j, k] = value1
                 m2[j, k] = value2
         weightedCrossing += getCrossing(m1)
-        crossing += getCrossing(m2)
+        if with_crossing:
+            crossing += getCrossing(m2)
     # print(weightedCrossing, crossing)
-    return {"weightedCrossing": weightedCrossing, "crossing": crossing}
+    if with_crossing:
+        return {"weightedCrossing": weightedCrossing, "crossing": crossing}
+    else:
+        return {"weightedCrossing": weightedCrossing}
 
 
 def load_json(input_dir):
@@ -92,7 +102,7 @@ def save_json(output_dir, result):
 
 # 将输入矩阵 matrix 和一个随机矩阵按一定权重进行组合
 def randomMatrix(matrix, beta):
-    print(matrix)
+    # print(matrix)
     orig = np.dot((1 - beta), matrix)
     # rand = np.random.rand(matrix.shape[0], matrix.shape[1])  # FIXME:
     if matrix.ndim < 2:

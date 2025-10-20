@@ -20,6 +20,7 @@ def run_method(
     dummy_signal=False,
     cycle_signal=False,
     level=None,
+    with_crossing=False,
 ):
     # 当cycle_signal==True时，nodes=None
     # 当algo=='BC'时，input_dir=None
@@ -29,6 +30,7 @@ def run_method(
         sankey_algo = BCAlgorithm()
 
         # 预处理数据
+        print("Data Preprocessing")
         if dummy_signal:
             stage1_data_pre = helper.dummy_data_preprocessing(data["links"], n, level)
         elif cycle_signal:
@@ -39,18 +41,19 @@ def run_method(
             stage1_data_pre = helper.stage1_data_preprocessing(
                 data["nodes"], data["links"], n
             )
-        with open("stage1_data.json", "w") as f:
-            json.dump(
-                {
-                    "nodes": stage1_data_pre["nodes"],
-                    "links": stage1_data_pre["addedLinks"],
-                },
-                f,
-            )
-        orig_order = [[i + 1 for i in range(len(l))] for l in stage1_data_pre["nodes"]]
-        orig_crossings = helper.calculate_crossings(
-            orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
-        )
+        # with open("stage1_data.json", "w") as f:
+        #     json.dump(
+        #         {
+        #             "nodes": stage1_data_pre["nodes"],
+        #             "links": stage1_data_pre["addedLinks"],
+        #         },
+        #         f,
+        #     )
+        # print("Computing Original Crossing")
+        # orig_order = [[i + 1 for i in range(len(l))] for l in stage1_data_pre["nodes"]]
+        # orig_crossings = helper.calculate_crossings(
+        #     orig_order, stage1_data_pre["nodes"], stage1_data_pre["groupedLinks"]
+        # )
         # if "level" not in data:
         #     orig_order = [[i + 1 for i in range(len(l))] for l in data["nodes"]]
         #     orig_crossings = helper.calculate_crossings(
@@ -68,6 +71,7 @@ def run_method(
         # print(orig_crossings)
 
         # 阶段 1：初始节点排序
+        print("Stage 1")
         result_1 = sankey_algo.stage_1(
             stage1_data_pre["nodes"],
             stage1_data_pre["addedLinks"],
@@ -78,6 +82,7 @@ def run_method(
             dummy_signal,
             cycle_signal,
             level,
+            with_crossing
         )
         float_ordering = result_1["result"]
         stage1_ordering = [[int(num) for num in sublist] for sublist in float_ordering]
@@ -100,6 +105,7 @@ def run_method(
         )
 
         # 阶段 2：细化节点排序
+        print("Stage 2")
         result_2 = sankey_algo.stage_2(
             stage2_data_pre["nodes"],
             stage2_data_pre["layeredLinks"],
@@ -112,6 +118,7 @@ def run_method(
             M,
             dummy_signal,
             cycle_signal,
+            with_crossing
         )
         stage2_ordering = result_2["result"]
 
@@ -122,17 +129,28 @@ def run_method(
         # print(stage2_crossings)
 
         # 返回结果
-        return {
-            "Original Crossing": orig_crossings["crossing"],
-            "Original WeightedCrossing": orig_crossings["weightedCrossing"],
-            "Stage 1 Ordering": stage1_ordering,
-            "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
-            "Stage 1 Crossing": stage1_crossings["crossing"],
-            "Stage 2 Ordering": stage2_ordering,
-            "Stage 2 WeightedCrossing": stage2_crossings["weightedCrossing"],
-            "Stage 2 Crossing": stage2_crossings["crossing"],
-            "minAchievedIteration": result_2["minAchievedIteration"],
-        }
+        if with_crossing:
+            return {
+                # "Original Crossing": orig_crossings["crossing"],
+                # "Original WeightedCrossing": orig_crossings["weightedCrossing"],
+                "Stage 1 Ordering": stage1_ordering,
+                "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
+                "Stage 1 Crossing": stage1_crossings["crossing"],
+                "Stage 2 Ordering": stage2_ordering,
+                "Stage 2 WeightedCrossing": stage2_crossings["weightedCrossing"],
+                "Stage 2 Crossing": stage2_crossings["crossing"],
+                "minAchievedIteration": result_2["minAchievedIteration"],
+            }
+        else:
+            return {
+                # "Original Crossing": orig_crossings["crossing"],
+                # "Original WeightedCrossing": orig_crossings["weightedCrossing"],
+                "Stage 1 Ordering": stage1_ordering,
+                "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
+                "Stage 2 Ordering": stage2_ordering,
+                "Stage 2 WeightedCrossing": stage2_crossings["weightedCrossing"],
+                "minAchievedIteration": result_2["minAchievedIteration"],
+            }
 
     elif algo == "ILP":
         # 实例化 ILP 算法

@@ -1,0 +1,1 @@
+from omics_sankey.main import run_method

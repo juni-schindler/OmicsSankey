@@ -1,5 +1,7 @@
 from itertools import groupby
 
+from tqdm import tqdm
+
 import numpy as np
 from pulp import LpInteger, LpStatus, LpVariable, value
 
@@ -20,6 +22,7 @@ class BCAlgorithm:
         dummy_signal=False,
         cycle_signal=False,
         level=None,
+        with_crossing=False,
     ):
         # 根据节点和链接数据，分别从正向和反向构建转移概率矩阵，并将这些矩阵存储在 matrices 列表中
         # 输入: n、nodes(和上段代码有关)、groupedLinks(和上段代码有关)、addedLinks(和上段代码有关) ；
@@ -27,6 +30,8 @@ class BCAlgorithm:
         # ****************************************************************
         # Generating matrices for Stage 1
         # ****************************************************************
+        
+        
         levelNumber = n
         matrices = []
         for i in range(n - 1):
@@ -112,7 +117,8 @@ class BCAlgorithm:
         # stage 1
         # ****************************************************************
         resultArray = [0] * N
-        for index in range(0, N):
+        for index in tqdm(range(0, N)):
+            # print("Run helper.parallel")
             resultObj = helper.parallel(matrices, alpha1)
             result = resultObj["result"]
 
@@ -121,13 +127,17 @@ class BCAlgorithm:
                 result0 = result[0]
                 result.append(result0)
 
+            # print("Run helper.calculate_crossings")
             stage1_cross = helper.calculate_crossings(result, nodes, groupedLinks)
 
             resultArray[index] = {
                 "weightedCrossing": stage1_cross["weightedCrossing"],
-                "crossing": stage1_cross["crossing"],
+                # "crossing": stage1_cross["crossing"],
                 "order": result,
             }
+
+            if with_crossing:
+                resultArray[index]["crossing"] = stage1_cross["crossing"]
         resultArray.sort(key=lambda x: x["weightedCrossing"], reverse=False)
         stage1Result = resultArray[0]["weightedCrossing"]
         result = resultArray[0]["order"]
@@ -163,6 +173,7 @@ class BCAlgorithm:
         M,
         dummy_signal=False,
         cycle_signal=False,
+        with_crossing=False,
     ):
         # 在第一阶段结果的基础上进一步优化节点的排序，以最小化加权交叉值
         # 输入：n、M、data(和第一段代码有关)、stage1Result(stage1的输出)、nodes(stage1的修改版)、links(和上两段代码有关)、groupedLinks(和stage1代码有关)
@@ -170,12 +181,14 @@ class BCAlgorithm:
         # ****************************************************************
         # Stage 2
         # ****************************************************************
+        
+        
         helper.initPos(levelNumber, nodes, links)
         minWeightedCrossing = stage1Result
         correspondingCrossing = 0
         correspondingOrdering = []
         minAchievedIteration = 0
-        for index in range(M):
+        for index in tqdm(range(M)):
             for i in range(1, n - 1):
                 helper.calculateNodePos(
                     i, nodes, links, alpha2, dummy_signal, cycle_signal
@@ -213,14 +226,16 @@ class BCAlgorithm:
             result = helper.getOrdering(levelNumber, nodes)
 
             checknodes = preNodes
-            stage2_cross = helper.calculate_crossings(result, checknodes, groupedLinks)
+            stage2_cross = helper.calculate_crossings(result, checknodes, groupedLinks, with_crossing)
             weightedCrossing = stage2_cross["weightedCrossing"]
-            crossing = stage2_cross["crossing"]
+            if with_crossing:
+                crossing = stage2_cross["crossing"]
 
             # print(weightedCrossing, correspondingOrdering)
             if weightedCrossing < minWeightedCrossing:
                 minWeightedCrossing = weightedCrossing
-                correspondingCrossing = crossing
+                if with_crossing:
+                    correspondingCrossing = crossing
                 correspondingOrdering = result
                 minAchievedIteration = index
 
