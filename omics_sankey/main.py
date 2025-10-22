@@ -1,17 +1,12 @@
 from __future__ import division
 
-import json
-
-from pulp import LpMinimize, LpProblem
-
 from . import helper
-from .algorithm import BCAlgorithm, ILPAlgorithm
+from .algorithm import BCAlgorithm
 
 
 def run_method(
     algo,
     data,
-    input_dir,
     n=None,
     alpha1=None,
     alpha2=None,
@@ -20,7 +15,6 @@ def run_method(
     dummy_signal=False,
     cycle_signal=False,
     level=None,
-    with_crossing=False,
 ):
     # 当cycle_signal==True时，nodes=None
     # 当algo=='BC'时，input_dir=None
@@ -30,7 +24,6 @@ def run_method(
         sankey_algo = BCAlgorithm()
 
         # 预处理数据
-        print("Data Preprocessing")
         if dummy_signal:
             stage1_data_pre = helper.dummy_data_preprocessing(data["links"], n, level)
         elif cycle_signal:
@@ -82,7 +75,6 @@ def run_method(
             dummy_signal,
             cycle_signal,
             level,
-            with_crossing
         )
         float_ordering = result_1["result"]
         stage1_ordering = [[int(num) for num in sublist] for sublist in float_ordering]
@@ -118,7 +110,6 @@ def run_method(
             M,
             dummy_signal,
             cycle_signal,
-            with_crossing
         )
         stage2_ordering = result_2["result"]
 
@@ -129,73 +120,17 @@ def run_method(
         # print(stage2_crossings)
 
         # 返回结果
-        if with_crossing:
-            return {
-                # "Original Crossing": orig_crossings["crossing"],
-                # "Original WeightedCrossing": orig_crossings["weightedCrossing"],
-                "Stage 1 Ordering": stage1_ordering,
-                "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
-                "Stage 1 Crossing": stage1_crossings["crossing"],
-                "Stage 2 Ordering": stage2_ordering,
-                "Stage 2 WeightedCrossing": stage2_crossings["weightedCrossing"],
-                "Stage 2 Crossing": stage2_crossings["crossing"],
-                "minAchievedIteration": result_2["minAchievedIteration"],
-            }
-        else:
-            return {
-                # "Original Crossing": orig_crossings["crossing"],
-                # "Original WeightedCrossing": orig_crossings["weightedCrossing"],
-                "Stage 1 Ordering": stage1_ordering,
-                "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
-                "Stage 2 Ordering": stage2_ordering,
-                "Stage 2 WeightedCrossing": stage2_crossings["weightedCrossing"],
-                "minAchievedIteration": result_2["minAchievedIteration"],
-            }
-
-    elif algo == "ILP":
-        # 实例化 ILP 算法
-        ilp_algo = ILPAlgorithm()
-        prob = LpProblem(input_dir, LpMinimize)
-        result = ilp_algo.ilp(prob, data["nodes"], data["links"])
-        return {"value": result["value"], "status": result["status"]}
+        return {
+            # "Original Crossing": orig_crossings["crossing"],
+            # "Original WeightedCrossing": orig_crossings["weightedCrossing"],
+            "Stage 1 Ordering": stage1_ordering,
+            "Stage 1 WeightedCrossing": stage1_crossings["weightedCrossing"],
+            "Stage 1 Crossing": stage1_crossings["crossing"],
+            "Stage 2 Ordering": stage2_ordering,
+            "Stage 2 WeightedCrossing": stage2_crossings["weightedCrossing"],
+            "Stage 2 Crossing": stage2_crossings["crossing"],
+            "minAchievedIteration": result_2["minAchievedIteration"],
+        }
 
     else:
         raise ValueError(f"未知算法: {algo}")
-
-
-def run_main(
-    algo,
-    input_dir,
-    output_dir,
-    n=None,
-    alpha1=None,
-    alpha2=None,
-    N=None,
-    M=None,
-    dummy_signal=False,
-    cycle_signal=False,
-    level=None,
-):
-    data = helper.load_json(input_dir)
-
-    # layeredLinks = data['links']
-    # nodes = data['nodes']
-
-    result = {}
-
-    result = run_method(
-        algo,
-        data,
-        input_dir,
-        n,
-        alpha1,
-        alpha2,
-        N,
-        M,
-        dummy_signal,
-        cycle_signal,
-        level,
-    )
-
-    helper.save_json(output_dir, result)
-    return result

@@ -22,7 +22,7 @@ def getEigen(
     # A = (A + A.T) / 2
     if A.shape == (1, 1):
         return np.array([1])
-        
+
     a, b = LA.eig(A)  # [[1.234]]
     indexList = sorted(range(len(a)), key=lambda k: a[k], reverse=True)
     index = indexList[i]  # FIXME:
@@ -30,12 +30,10 @@ def getEigen(
     return vector
 
 
-def getCrossing(inputMatrix, max_dim=40):  # 计算输入矩阵的交叉值。
+def getCrossing(inputMatrix):  # 计算输入矩阵的交叉值。
     npMatrix = np.array(inputMatrix)
     p = npMatrix.shape[0]
     q = npMatrix.shape[1]
-    if p + q > max_dim:
-        return 0 # crossing number not necessarily needed for layout
     crossing = 0
     # this loop is very time-consuming!
     for j in range(1, p):
@@ -46,10 +44,35 @@ def getCrossing(inputMatrix, max_dim=40):  # 计算输入矩阵的交叉值。
     return crossing
 
 
+def getCrossing_fast(layout_matrix):
+    """Compute crossing number without loop."""
+    layout_matrix = np.array(layout_matrix)
+
+    # get all edges
+    edges = np.argwhere(layout_matrix > 0)
+
+    # Extract indices and weights of edges
+    edge_start, edge_end = edges[:, 0], edges[:, 1]
+    edge_weights = layout_matrix[edge_start, edge_end]
+
+    # Create masks for valid crossings
+    row_mask = edge_start[:, None] < edge_start
+    col_mask = edge_end[:, None] > edge_end
+
+    # Compute weighted crossings
+    valid_crossings = row_mask & col_mask
+    weighted_crossing = np.sum(edge_weights[:, None] * edge_weights * valid_crossings)
+
+    # Count the number of crossings
+    crossing = np.sum(valid_crossings)
+
+    return weighted_crossing, crossing
+
+
 # --------------------------------------------------------
 
 
-def calculate_crossings(result, nodes, groupedLinks, with_crossing=True):
+def calculate_crossings(result, nodes, groupedLinks):
     # print(len(result), len(nodes))
     weightedCrossing = 0
     crossing = 0
@@ -58,31 +81,22 @@ def calculate_crossings(result, nodes, groupedLinks, with_crossing=True):
         order2 = result[i + 1]
         nodes1 = nodes[i]
         nodes2 = nodes[i + 1]
-        # print(i)
-        # print(nodes2)
-        # print(order2)
-        m1 = np.empty([len(order1), len(order2)])
-        m2 = np.empty([len(order1), len(order2)])
+
+        layout_matrix = np.empty([len(order1), len(order2)])
         for j in range(0, len(order1)):
             sourceName = nodes1[int(order1[j]) - 1]["name"]
             for k in range(0, len(order2)):
                 targetName = nodes2[int(order2[k]) - 1]["name"]
                 value1 = 0
-                value2 = 0
                 for link in groupedLinks[sourceName]:
                     if (targetName == link["target"]) & (sourceName == link["source"]):
                         value1 = link["value"]
-                        value2 = 1
-                m1[j, k] = value1
-                m2[j, k] = value2
-        weightedCrossing += getCrossing(m1)
-        if with_crossing:
-            crossing += getCrossing(m2)
-    # print(weightedCrossing, crossing)
-    if with_crossing:
-        return {"weightedCrossing": weightedCrossing, "crossing": crossing}
-    else:
-        return {"weightedCrossing": weightedCrossing}
+                layout_matrix[j, k] = value1
+
+        weighted_crossing, crossing = getCrossing_fast(layout_matrix)
+        weightedCrossing += weighted_crossing
+        crossing += crossing
+    return {"weightedCrossing": weightedCrossing, "crossing": crossing}
 
 
 def load_json(input_dir):
