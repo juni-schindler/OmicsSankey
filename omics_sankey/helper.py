@@ -8,6 +8,7 @@ import numpy as np
 from numpy import linalg as LA
 
 np.set_printoptions(precision=16)
+np.seterr(invalid='ignore')
 
 
 def clearResult(vector):  # 对输入的向量进行排序并返回排序后的索引加 1 的结果。
@@ -73,15 +74,19 @@ def getCrossing_fast(layout_matrix):
 
 
 def calculate_crossings(result, nodes, groupedLinks):
-    # print(len(result), len(nodes))
-    weightedCrossing = 0
-    crossing = 0
+
+    # initialise crossings
+    weighted_crossing_total = 0
+    crossing_total = 0
+
+    # iterate through all layers
     for i in range(0, len(result) - 1):
         order1 = result[i]
         order2 = result[i + 1]
         nodes1 = nodes[i]
         nodes2 = nodes[i + 1]
 
+        # construct layout matrix
         layout_matrix = np.empty([len(order1), len(order2)])
         for j in range(0, len(order1)):
             sourceName = nodes1[int(order1[j]) - 1]["name"]
@@ -93,10 +98,13 @@ def calculate_crossings(result, nodes, groupedLinks):
                         value1 = link["value"]
                 layout_matrix[j, k] = value1
 
+        # compute crossings of layer
         weighted_crossing, crossing = getCrossing_fast(layout_matrix)
-        weightedCrossing += weighted_crossing
-        crossing += crossing
-    return {"weightedCrossing": weightedCrossing, "crossing": crossing}
+        weighted_crossing_total += weighted_crossing
+        crossing_total += crossing
+
+    # return total crossings
+    return {"weightedCrossing": weighted_crossing_total, "crossing": crossing_total}
 
 
 def load_json(input_dir):

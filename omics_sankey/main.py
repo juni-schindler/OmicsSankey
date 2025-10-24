@@ -3,7 +3,6 @@ from __future__ import division
 from . import helper
 from .algorithm import BCAlgorithm
 
-
 def run_method(
     algo,
     data,
@@ -64,7 +63,7 @@ def run_method(
         # print(orig_crossings)
 
         # 阶段 1：初始节点排序
-        print("Stage 1")
+        print("OmicsSankey - Stage 1")
         result_1 = sankey_algo.stage_1(
             stage1_data_pre["nodes"],
             stage1_data_pre["addedLinks"],
@@ -97,7 +96,7 @@ def run_method(
         )
 
         # 阶段 2：细化节点排序
-        print("Stage 2")
+        print("OmicsSankey - Stage 2")
         result_2 = sankey_algo.stage_2(
             stage2_data_pre["nodes"],
             stage2_data_pre["layeredLinks"],

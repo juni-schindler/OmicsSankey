@@ -7,11 +7,11 @@ import numpy as np
 from . import helper
 
 np.set_printoptions(suppress=True)
+np.seterr(invalid='ignore') 
 
 
 class BCAlgorithm:
     def stage_1(
-    
         self,
         nodes,
         addedLinks,
